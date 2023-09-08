@@ -7,7 +7,7 @@ namespace SerialMonitor
 {
     public partial class HomeAutomationControlBoard : Form
     {
-        private SerialPort selectedSerialPort;
+        private SerialPort serialPort;
         public HomeAutomationControlBoard()
         {
             InitializeComponent();
@@ -17,20 +17,42 @@ namespace SerialMonitor
         {
             GenerateDynamicButtons();
             PopulateSerialPort();
-            var configs = GetXMLConfigurations();
-            cmbButttons.SelectedText = configs.Count.ToString();
-            configs.Add(new XMLConfiguration());
-            dataGridView1.DataSource = configs;
+            //var configs = GetXMLConfigurations();
+            //cmbButttons.SelectedText = configs.Count.ToString();
+            //configs.Add(new XMLConfiguration());
+            //dataGridView1.DataSource = configs;
+            dataGridView1.AutoGenerateColumns = false;
 
         }
 
         private void button_Click(object sender, EventArgs e)
         {
-            string dynamicValue = ((Button)sender).Tag.ToString();
-            MessageBox.Show(dynamicValue);
-        }
+            string commandToSend = ((Button)sender).Tag.ToString();
+            string selectedButtonText = ((Button)sender).Text;
 
-       
+            if(serialPort != null && serialPort.IsOpen)
+            {
+                if (selectedButtonText == "On")
+                {
+                    ((Button)sender).Text = "Off";
+                    ((Button)sender).BackColor = Color.FromArgb(67, 126, 235);
+                    commandToSend += "0";
+                }
+                else
+                {
+                    ((Button)sender).Text = "On";
+                    ((Button)sender).BackColor = Color.Red;
+                    commandToSend += "1";
+                }
+                string dataToSend = commandToSend;
+                serialPort.WriteLine(dataToSend);
+            }
+            else
+            {
+                MessageBox.Show("Please connect first to proper Port & Baud Rate!");
+            }
+
+        }
 
         private void GenerateDynamicButtons()
         {
@@ -40,22 +62,31 @@ namespace SerialMonitor
                 int top = 50;
                 int left = 40;
 
+
                 var configs = GetXMLConfigurations();
 
                 groupBox1.Controls.Clear();
                 for (int i = 0; i < configs?.Count; i++)
                 {
                     Button button = new Button();
-                    button.Text = configs[i].ButtonText;
-                    button.Left = left;
+                    Label label = new Label();
+                    label.Text = configs[i].ButtonText;
+                    label.Left = left;
+                    label.Top = top + 10;
+                    //button.Text = "On";
+                    button.Text = "Off";//configs[i].ButtonText + " " + configs[i].Command;
+                    button.Left = left + 100;
                     button.Top = top;
                     button.Height = 35;
                     //this.Controls.Add(button);
+                    groupBox1.Controls.Add(label);
                     groupBox1.Controls.Add(button);
-                    top += button.Height + 2;
-                    button.Width = 200;
+                    top += button.Height + 5;
+                    //top += label.Height + 5;
+                    button.Width = 70;
                     // button.Height = 60;
-                    button.Tag = configs[i].PinMapping + "|" + configs[i].Command;
+                    //button.Tag = configs[i].PinMapping + "-" + (configs[i].Command.ToLower() == "on" ? 1 : 0);
+                    button.Tag = configs[i].PinMapping + "-";
                     button.Click += new EventHandler(button_Click);
                 }
             }
@@ -91,22 +122,24 @@ namespace SerialMonitor
             int numRows = Convert.ToInt32(cmbButttons.SelectedItem); // Get the selected number from ComboBox
             dataGridView1.Columns.Clear();
             DataGridViewTextBoxColumn buttonColumn = new DataGridViewTextBoxColumn();
-            buttonColumn.HeaderText = "Button Text";
+            buttonColumn.HeaderText = "Appliance Name";
             buttonColumn.Name = "ButtonText";
+            buttonColumn.Width = 170;
 
             DataGridViewTextBoxColumn pinColumn = new DataGridViewTextBoxColumn();
             pinColumn.HeaderText = "Pin Mapping";
             pinColumn.Name = "PinMapping";
+            pinColumn.Width = 130;
 
-            DataGridViewTextBoxColumn commandColumn = new DataGridViewTextBoxColumn();
-            commandColumn.HeaderText = "Command";
-            commandColumn.Name = "Command";
+            //DataGridViewTextBoxColumn commandColumn = new DataGridViewTextBoxColumn();
+            //commandColumn.HeaderText = "Command";
+            //commandColumn.Name = "Command";
 
             dataGridView1.Columns.Add(buttonColumn);
             dataGridView1.Columns.Add(pinColumn);
-            dataGridView1.Columns.Add(commandColumn);
+            //dataGridView1.Columns.Add(commandColumn);
 
-            dataGridView1.Rows.Clear(); // Clear existing rows
+            dataGridView1.Rows.Clear();
 
             for (int i = 0; i < numRows; i++)
             {
@@ -150,36 +183,62 @@ namespace SerialMonitor
             }
         }
 
-        private void OpenSelectedSerialPort()
+        private bool ConnectToSerialPort()
         {
             string selectedPortName = cmbPort.SelectedItem.ToString();
 
-            selectedSerialPort = new SerialPort(selectedPortName);
+            serialPort = new SerialPort(selectedPortName);
 
             // Configure other serial port settings as needed
-            selectedSerialPort.BaudRate = Convert.ToInt32(cmbBaudRate.SelectedItem);
-            selectedSerialPort.DataBits = 8;
-            selectedSerialPort.Parity = Parity.None;
-            selectedSerialPort.StopBits = StopBits.One;
+            serialPort.BaudRate = Convert.ToInt32(cmbBaudRate.SelectedItem);
+            serialPort.DataBits = 8;
+            serialPort.Parity = Parity.None;
+            serialPort.StopBits = StopBits.One;
 
             try
             {
-                selectedSerialPort.Open();
-                MessageBox.Show("Connected to Micro-controller!!!");
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Close();
+                    MessageBox.Show("Disconnected to Micro-controller!!!");
+                }
+                else
+                {
+                    serialPort.Open();
+                    MessageBox.Show("Connected to Micro-controller!!!");
+                }
+
+
                 // Serial port is now open and ready for communication
+                return true;
             }
             catch (Exception ex)
             {
                 // Handle any exceptions that occur when opening the port
                 MessageBox.Show("Error opening serial port: " + ex.Message);
+                return false;
             }
         }
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            OpenSelectedSerialPort();
-            btnConnect.Text = "Connected";
-            btnConnect.Enabled = false;
+
+            if (serialPort != null && serialPort.IsOpen)
+            {
+                serialPort.Close();
+                btnConnect.Text = "Connect";
+                MessageBox.Show("Disconnected to Micro-controller!!!");
+            }
+            else
+            {
+                bool isConnected = ConnectToSerialPort();
+                if (isConnected)
+                {
+                    btnConnect.Text = "Disconnect";
+                }
+
+            }
+
         }
 
         private void btnClose_Click(object sender, EventArgs e)
@@ -215,17 +274,28 @@ namespace SerialMonitor
 
                 }
             }
-
-            //Save configuartion to xml
-            string filePath = Path.Combine(Application.StartupPath, "Arduino.xml");
-
-            XmlSerializer serializer = new XmlSerializer(typeof(List<XMLConfiguration>));
-            using (TextWriter writer = new StreamWriter(filePath))
+            if ((configurations.Count) != Convert.ToInt32(cmbButttons.SelectedItem))
             {
-                serializer.Serialize(writer, configurations);
+                MessageBox.Show("Please provide all appliance details expected : " + Convert.ToInt32(cmbButttons.SelectedItem));
             }
-            GenerateDynamicButtons();
-            MessageBox.Show("Configuaration Saved!");
+            //Save configuartion to xml
+            else if ((configurations.Count) == Convert.ToInt32(cmbButttons.SelectedItem))
+            {
+                string filePath = Path.Combine(Application.StartupPath, "Arduino.xml");
+
+                XmlSerializer serializer = new XmlSerializer(typeof(List<XMLConfiguration>));
+                using (TextWriter writer = new StreamWriter(filePath))
+                {
+                    serializer.Serialize(writer, configurations);
+                }
+                GenerateDynamicButtons();
+                MessageBox.Show("Configuaration Saved!");
+            }
+            else
+            {
+                MessageBox.Show("Nothing to save!");
+            }
+
         }
 
         private void btnMinimize_Click(object sender, EventArgs e)

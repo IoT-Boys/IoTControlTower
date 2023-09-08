@@ -117,9 +117,4 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="label2.Text" xml:space="preserve">
-    <value>NOTE: While saving configuaration you need to provide exact command which you are using for the PIN e.g. HIGH, LOW etc.
-Example :- Button Text =&gt; Red LED ON, Pin Mapping =&gt;7 (PIN which you made as OUTPUT), Command HIGH (To make LED ON).
-                    Button Text =&gt; Red LED OFF, Pin Mapping =&gt;7 (PIN which you made as OUTPUT), Command LOW (To make LED ON).</value>
-  </data>
 </root>
