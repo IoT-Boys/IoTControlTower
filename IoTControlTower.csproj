@@ -6,7 +6,20 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>IoTBoys-ico.ico</ApplicationIcon>
+    <PackageIcon>IoTBoys 250x250.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="IoTBoys-ico.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\User\Downloads\IoTBoys V2\IoTBoys 250x250.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="7.0.0" />

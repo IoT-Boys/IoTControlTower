@@ -11,7 +11,5 @@ namespace SerialMonitor
     {
         public string ButtonText { get; set; }
         public string PinMapping { get; set; }
-
-        public string Command { get; set; }
     }
 }
