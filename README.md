@@ -70,4 +70,10 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 Happy tinkering! 🚀
 ```
 
+## Support
+
+If you find this project helpful and would like to support its development, consider [buying me a coffee](https://paypal.me/rjvranjan80).
+
+Your support is greatly appreciated! ☕
+
 Feel free to modify and customize this template according to the specifics of your project. Make sure to replace the placeholders with your actual project details, such as links, file paths, and descriptions.
